@@ -48,13 +48,10 @@ frontend/.eslintcache
 *.sqlite-wal
 *.sqlite-shm
 
-# Model weights and generated experiment artifacts
-*.pth
+# Large model export formats
 *.pt
 *.onnx
-data_new/models/
 
 # Large local datasets can be restored separately if needed
 # Uncomment the next line if the datasets are too large for the repository.
 # data_new/kaggle/
-

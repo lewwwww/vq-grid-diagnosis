@@ -1,0 +1,758 @@
+{
+  "experiment_b": {
+    "comp_8": {
+      "accuracy": 85.37,
+      "macro_precision": 81.99,
+      "macro_recall": 82.75,
+      "macro_f1": 79.06,
+      "inference_ms": 1.94,
+      "model_size_mb": 0.279,
+      "per_class": {
+        "正常": {
+          "precision": 99.72,
+          "recall": 99.91,
+          "f1": 99.81,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 96.57,
+          "recall": 100.0,
+          "f1": 98.26,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 98.51,
+          "recall": 97.79,
+          "f1": 98.12,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 33.39,
+          "recall": 38.79,
+          "f1": 30.72,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 100.0,
+          "recall": 95.88,
+          "f1": 97.9,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 63.75,
+          "recall": 64.12,
+          "f1": 49.56,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          355,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          169,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          148,
+          2,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          2,
+          64,
+          0,
+          99
+        ],
+        [
+          0,
+          6,
+          0,
+          0,
+          163,
+          1
+        ],
+        [
+          0,
+          0,
+          1,
+          60,
+          0,
+          109
+        ]
+      ],
+      "all_run_accuracies": [
+        85.08,
+        85.85,
+        85.17
+      ],
+      "accuracy_std": 0.34
+    },
+    "comp_10": {
+      "accuracy": 85.82,
+      "macro_precision": 88.22,
+      "macro_recall": 83.56,
+      "macro_f1": 80.5,
+      "inference_ms": 2.53,
+      "model_size_mb": 0.282,
+      "per_class": {
+        "正常": {
+          "precision": 99.72,
+          "recall": 99.53,
+          "f1": 99.62,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 93.61,
+          "recall": 100.0,
+          "f1": 96.68,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 97.24,
+          "recall": 99.12,
+          "f1": 98.15,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 53.63,
+          "recall": 78.18,
+          "f1": 59.95,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 100.0,
+          "recall": 94.31,
+          "f1": 97.06,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 85.1,
+          "recall": 30.2,
+          "f1": 31.52,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          353,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          169,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          3,
+          129,
+          0,
+          33
+        ],
+        [
+          0,
+          9,
+          0,
+          0,
+          160,
+          0
+        ],
+        [
+          0,
+          1,
+          2,
+          116,
+          0,
+          51
+        ]
+      ],
+      "all_run_accuracies": [
+        86.27,
+        85.68,
+        85.51
+      ],
+      "accuracy_std": 0.33
+    },
+    "comp_12": {
+      "accuracy": 85.31,
+      "macro_precision": 85.02,
+      "macro_recall": 83.05,
+      "macro_f1": 78.16,
+      "inference_ms": 2.16,
+      "model_size_mb": 0.285,
+      "per_class": {
+        "正常": {
+          "precision": 99.81,
+          "recall": 97.93,
+          "f1": 98.84,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 97.51,
+          "recall": 100.0,
+          "f1": 98.73,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 95.03,
+          "recall": 99.34,
+          "f1": 97.06,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 50.36,
+          "recall": 35.35,
+          "f1": 26.35,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 100.0,
+          "recall": 97.26,
+          "f1": 98.61,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 67.43,
+          "recall": 68.43,
+          "f1": 49.38,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          348,
+          0,
+          7,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          169,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          58,
+          0,
+          107
+        ],
+        [
+          0,
+          4,
+          0,
+          0,
+          165,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          52,
+          0,
+          116
+        ]
+      ],
+      "all_run_accuracies": [
+        86.19,
+        84.49,
+        85.25
+      ],
+      "accuracy_std": 0.7
+    },
+    "comp_16": {
+      "accuracy": 85.76,
+      "macro_precision": 86.0,
+      "macro_recall": 83.64,
+      "macro_f1": 81.56,
+      "inference_ms": 1.87,
+      "model_size_mb": 0.291,
+      "per_class": {
+        "正常": {
+          "precision": 100.0,
+          "recall": 98.4,
+          "f1": 99.19,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 94.16,
+          "recall": 100.0,
+          "f1": 96.97,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 98.91,
+          "recall": 100.0,
+          "f1": 99.45,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 54.27,
+          "recall": 63.63,
+          "f1": 53.23,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 100.0,
+          "recall": 96.27,
+          "f1": 98.1,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 68.65,
+          "recall": 43.53,
+          "f1": 42.41,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          349,
+          5,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          169,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          151,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          105,
+          0,
+          59
+        ],
+        [
+          0,
+          6,
+          0,
+          0,
+          164,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          95,
+          0,
+          74
+        ]
+      ],
+      "all_run_accuracies": [
+        85.68,
+        86.61,
+        85.0
+      ],
+      "accuracy_std": 0.66
+    }
+  },
+  "experiment_c": {
+    "int2": {
+      "accuracy": 70.96,
+      "macro_precision": 53.17,
+      "macro_recall": 66.03,
+      "macro_f1": 56.89,
+      "inference_ms": 2.06,
+      "model_size_mb": 0.291,
+      "per_class": {
+        "正常": {
+          "precision": 99.91,
+          "recall": 99.91,
+          "f1": 99.91,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 64.94,
+          "recall": 66.67,
+          "f1": 65.79,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 99.33,
+          "recall": 98.45,
+          "f1": 98.89,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 16.17,
+          "recall": 32.93,
+          "f1": 21.69,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 38.67,
+          "recall": 98.24,
+          "f1": 55.08,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          355,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          113,
+          0,
+          0,
+          56,
+          0
+        ],
+        [
+          0,
+          0,
+          149,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          54,
+          110,
+          0
+        ],
+        [
+          0,
+          3,
+          0,
+          0,
+          167,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          57,
+          113,
+          0
+        ]
+      ],
+      "all_run_accuracies": [
+        70.68,
+        71.27,
+        70.93
+      ],
+      "accuracy_std": 0.24
+    },
+    "int4": {
+      "accuracy": 84.83,
+      "macro_precision": 74.06,
+      "macro_recall": 81.92,
+      "macro_f1": 76.62,
+      "inference_ms": 2.23,
+      "model_size_mb": 0.291,
+      "per_class": {
+        "正常": {
+          "precision": 99.26,
+          "recall": 100.0,
+          "f1": 99.63,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 96.58,
+          "recall": 100.0,
+          "f1": 98.26,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 98.29,
+          "recall": 97.79,
+          "f1": 98.03,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 100.0,
+          "recall": 94.31,
+          "f1": 97.07,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 50.22,
+          "recall": 99.41,
+          "f1": 66.72,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          355,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          169,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          148,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          0,
+          163
+        ],
+        [
+          0,
+          6,
+          0,
+          0,
+          160,
+          4
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          169
+        ]
+      ],
+      "all_run_accuracies": [
+        85.08,
+        84.58,
+        84.83
+      ],
+      "accuracy_std": 0.2
+    },
+    "int8": {
+      "accuracy": 84.52,
+      "macro_precision": 80.29,
+      "macro_recall": 81.83,
+      "macro_f1": 78.17,
+      "inference_ms": 3.15,
+      "model_size_mb": 0.306,
+      "per_class": {
+        "正常": {
+          "precision": 99.54,
+          "recall": 100.0,
+          "f1": 99.77,
+          "support": 355
+        },
+        "单相接地": {
+          "precision": 95.67,
+          "recall": 100.0,
+          "f1": 97.79,
+          "support": 169
+        },
+        "相间短路": {
+          "precision": 91.3,
+          "recall": 98.01,
+          "f1": 94.18,
+          "support": 151
+        },
+        "三相短路": {
+          "precision": 34.34,
+          "recall": 53.54,
+          "f1": 41.17,
+          "support": 165
+        },
+        "两相接地": {
+          "precision": 96.84,
+          "recall": 95.3,
+          "f1": 96.06,
+          "support": 170
+        },
+        "三相接地短路": {
+          "precision": 64.08,
+          "recall": 44.12,
+          "f1": 40.05,
+          "support": 170
+        }
+      },
+      "confusion_matrix": [
+        [
+          355,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          169,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          148,
+          1,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          10,
+          88,
+          0,
+          67
+        ],
+        [
+          0,
+          8,
+          0,
+          0,
+          162,
+          0
+        ],
+        [
+          1,
+          0,
+          7,
+          82,
+          5,
+          75
+        ]
+      ],
+      "all_run_accuracies": [
+        85.08,
+        82.46,
+        86.02
+      ],
+      "accuracy_std": 1.51
+    }
+  },
+  "experiment_d": {
+    "cnn": {
+      "accuracy": 85.2,
+      "accuracy_std": 0.22,
+      "f1": 82.41,
+      "inference_ms": 0.0218,
+      "model_size_mb": 0.391,
+      "all_run_accuracies": [
+        85.08474576271186,
+        85.0,
+        85.50847457627118
+      ]
+    },
+    "lstm": {
+      "accuracy": 85.11,
+      "accuracy_std": 0.52,
+      "f1": 82.41,
+      "inference_ms": 0.0139,
+      "model_size_mb": 1.141,
+      "all_run_accuracies": [
+        84.4915254237288,
+        85.76271186440678,
+        85.08474576271186
+      ]
+    },
+    "mlp": {
+      "accuracy": 85.45,
+      "accuracy_std": 0.73,
+      "f1": 84.1,
+      "inference_ms": 0.0057,
+      "model_size_mb": 0.325,
+      "all_run_accuracies": [
+        84.57627118644068,
+        85.42372881355932,
+        86.35593220338983
+      ]
+    }
+  }
+}

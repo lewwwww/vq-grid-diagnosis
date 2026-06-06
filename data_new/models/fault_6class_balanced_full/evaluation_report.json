@@ -1,0 +1,146 @@
+{
+  "model_info": {
+    "model_type": "6-class fault classification (Node IDs)",
+    "input_dim": 6,
+    "hidden_dim": 256,
+    "compressed_dim": 10,
+    "dropout": 0.285,
+    "num_classes": 6,
+    "training_date": "2026-03-09 11:57:27",
+    "random_seed": 42
+  },
+  "training_config": {
+    "learning_rate": 0.0085,
+    "batch_size": 128,
+    "num_epochs": 100,
+    "patience": 20,
+    "data_split": {
+      "train": "70%",
+      "validation": "15%",
+      "test": "15%"
+    }
+  },
+  "performance_metrics": {
+    "accuracy": 0.8559322033898306,
+    "precision": 0.9192335594278962,
+    "recall": 0.8559322033898306,
+    "f1_score": 0.8211284745809677
+  },
+  "practical_metrics": {
+    "inference_time_ms": 0.0008465880054538533,
+    "model_size_mb": 0.28,
+    "encoder_size_mb": 0.27,
+    "classifier_size_mb": 0.01
+  },
+  "detailed_results": {
+    "classification_report": {
+      "正常": {
+        "precision": 0.9916201117318436,
+        "recall": 1.0,
+        "f1-score": 0.9957924263674615,
+        "support": 355.0
+      },
+      "单相接地": {
+        "precision": 0.9441340782122905,
+        "recall": 1.0,
+        "f1-score": 0.9712643678160919,
+        "support": 169.0
+      },
+      "相间短路": {
+        "precision": 1.0,
+        "recall": 0.9668874172185431,
+        "f1-score": 0.9831649831649831,
+        "support": 151.0
+      },
+      "三相短路": {
+        "precision": 1.0,
+        "recall": 0.07272727272727272,
+        "f1-score": 0.13559322033898305,
+        "support": 165.0
+      },
+      "两相接地": {
+        "precision": 1.0,
+        "recall": 0.9588235294117647,
+        "f1-score": 0.978978978978979,
+        "support": 170.0
+      },
+      "三相接地短路": {
+        "precision": 0.5124223602484472,
+        "recall": 0.9705882352941176,
+        "f1-score": 0.6707317073170732,
+        "support": 170.0
+      },
+      "accuracy": 0.8559322033898306,
+      "macro avg": {
+        "precision": 0.9080294250320969,
+        "recall": 0.828171075775283,
+        "f1-score": 0.7892542806639287,
+        "support": 1180.0
+      },
+      "weighted avg": {
+        "precision": 0.9192335594278962,
+        "recall": 0.8559322033898306,
+        "f1-score": 0.8211284745809677,
+        "support": 1180.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        355,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        169,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        146,
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        0,
+        0,
+        12,
+        0,
+        153
+      ],
+      [
+        0,
+        6,
+        0,
+        0,
+        163,
+        1
+      ],
+      [
+        1,
+        4,
+        0,
+        0,
+        0,
+        165
+      ]
+    ]
+  },
+  "fault_types": {
+    "0": "正常",
+    "1": "单相接地故障",
+    "2": "相间短路故障",
+    "3": "三相短路故障",
+    "4": "两相接地故障",
+    "5": "三相接地短路"
+  }
+}

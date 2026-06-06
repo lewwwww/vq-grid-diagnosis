@@ -1,0 +1,405 @@
+{
+  "best_params": {
+    "hidden_dim": 256,
+    "compressed_dim": 10,
+    "dropout": 0.09351332282682329,
+    "learning_rate": 0.001096821720752952,
+    "weight_decay": 0.00012399967836846095,
+    "batch_size": 64
+  },
+  "best_value": 0.8608990670059372,
+  "n_trials": 30,
+  "optimization_date": "2026-03-09 11:18:59",
+  "all_trials": [
+    {
+      "number": 0,
+      "params": {
+        "hidden_dim": 128,
+        "compressed_dim": 8,
+        "dropout": 0.2598528437324805,
+        "learning_rate": 0.0015930522616241021,
+        "weight_decay": 0.0002607024758370766,
+        "batch_size": 64
+      },
+      "value": 0.8354537743850721,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 1,
+      "params": {
+        "hidden_dim": 64,
+        "compressed_dim": 10,
+        "dropout": 0.18355586841671384,
+        "learning_rate": 0.00019010245319870352,
+        "weight_decay": 3.8396292998041685e-05,
+        "batch_size": 128
+      },
+      "value": 0.8125530110262935,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 2,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.28466566117599995,
+        "learning_rate": 0.00853618986286683,
+        "weight_decay": 0.0004138040112561013,
+        "batch_size": 128
+      },
+      "value": 0.8388464800678541,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 3,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.09351332282682329,
+        "learning_rate": 0.001096821720752952,
+        "weight_decay": 0.00012399967836846095,
+        "batch_size": 64
+      },
+      "value": 0.8608990670059372,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 4,
+      "params": {
+        "hidden_dim": 64,
+        "compressed_dim": 8,
+        "dropout": 0.0975990992289793,
+        "learning_rate": 0.0005989003672254305,
+        "weight_decay": 3.488976654890367e-05,
+        "batch_size": 32
+      },
+      "value": 0.8524173027989822,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 5,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.0016566351370807197,
+        "learning_rate": 0.004274869455295219,
+        "weight_decay": 0.0002592475660475158,
+        "batch_size": 64
+      },
+      "value": 0.8566581849024597,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 6,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 8,
+        "dropout": 0.09755499660802411,
+        "learning_rate": 0.002878805718308925,
+        "weight_decay": 0.00018841476921545086,
+        "batch_size": 32
+      },
+      "value": 0.8507209499575912,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 7,
+      "params": {
+        "hidden_dim": 128,
+        "compressed_dim": 8,
+        "dropout": 0.007625738023228556,
+        "learning_rate": 0.00016435497475111326,
+        "weight_decay": 1.1557352816269867e-05,
+        "batch_size": 32
+      },
+      "value": 0.8464800678541137,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 8,
+      "params": {
+        "hidden_dim": 64,
+        "compressed_dim": 8,
+        "dropout": 0.04836638617620132,
+        "learning_rate": 0.007234279845665418,
+        "weight_decay": 0.00041327654594663655,
+        "batch_size": 64
+      },
+      "value": 0.8490245971162002,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 9,
+      "params": {
+        "hidden_dim": 128,
+        "compressed_dim": 10,
+        "dropout": 0.0683805487625825,
+        "learning_rate": 0.0007148510793512986,
+        "weight_decay": 0.0004325432427964555,
+        "batch_size": 32
+      },
+      "value": 0.8566581849024597,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 10,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 12,
+        "dropout": 0.19048723213793523,
+        "learning_rate": 0.00039976180916710425,
+        "weight_decay": 6.228997444898858e-05,
+        "batch_size": 64
+      },
+      "value": 0.8269720101781171,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 11,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 16,
+        "dropout": 0.016747391925490403,
+        "learning_rate": 0.00287500590409936,
+        "weight_decay": 0.0009398078164507707,
+        "batch_size": 64
+      },
+      "value": 0.8481764206955047,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 12,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.14181420199738456,
+        "learning_rate": 0.0017340750366137945,
+        "weight_decay": 0.00010513207845835305,
+        "batch_size": 64
+      },
+      "value": 0.8541136556403732,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 13,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.12356596628337876,
+        "learning_rate": 0.003816555624863523,
+        "weight_decay": 0.00012464544807709382,
+        "batch_size": 64
+      },
+      "value": 0.8507209499575912,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 14,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 16,
+        "dropout": 0.04821998445661363,
+        "learning_rate": 0.0012774135799436955,
+        "weight_decay": 0.0008740070916132908,
+        "batch_size": 64
+      },
+      "value": 0.8464800678541137,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 15,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 12,
+        "dropout": 0.18575036322122782,
+        "learning_rate": 0.0003464613187419307,
+        "weight_decay": 6.337411963587606e-05,
+        "batch_size": 64
+      },
+      "value": 0.8371501272264631,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 16,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.005036982393450724,
+        "learning_rate": 0.004747878941345365,
+        "weight_decay": 0.00018709720539884022,
+        "batch_size": 128
+      },
+      "value": 0.8608990670059372,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 17,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.06745447842734857,
+        "learning_rate": 0.0008986567432902826,
+        "weight_decay": 1.8105424993389243e-05,
+        "batch_size": 128
+      },
+      "value": 0.8447837150127226,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 18,
+      "params": {
+        "hidden_dim": 128,
+        "compressed_dim": 10,
+        "dropout": 0.2416380948604925,
+        "learning_rate": 0.005703784091065772,
+        "weight_decay": 0.0001653940616282605,
+        "batch_size": 128
+      },
+      "value": 0.8303647158608991,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 19,
+      "params": {
+        "hidden_dim": 64,
+        "compressed_dim": 12,
+        "dropout": 0.10364975143816013,
+        "learning_rate": 0.002220974547463387,
+        "weight_decay": 7.579610354658493e-05,
+        "batch_size": 128
+      },
+      "value": 0.8464800678541137,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 20,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 16,
+        "dropout": 0.03381826663065721,
+        "learning_rate": 0.0001184974196190578,
+        "weight_decay": 3.408615407291454e-05,
+        "batch_size": 128
+      },
+      "value": 0.8396946564885496,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 21,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.005149454121811841,
+        "learning_rate": 0.0048918384102551804,
+        "weight_decay": 0.00026296963804031345,
+        "batch_size": 64
+      },
+      "value": 0.8600508905852418,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 22,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.07130909629832928,
+        "learning_rate": 0.006092508364605718,
+        "weight_decay": 0.0002425770610974053,
+        "batch_size": 64
+      },
+      "value": 0.8363019508057676,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 23,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.03427134463920662,
+        "learning_rate": 0.00972626080151121,
+        "weight_decay": 0.00013755399003445985,
+        "batch_size": 128
+      },
+      "value": 0.8575063613231552,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 24,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.15917907070580758,
+        "learning_rate": 0.0042114539169380944,
+        "weight_decay": 0.0005665033272450019,
+        "batch_size": 64
+      },
+      "value": 0.8447837150127226,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 25,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.027319947326245854,
+        "learning_rate": 0.0024406087500648383,
+        "weight_decay": 0.00021165344082691727,
+        "batch_size": 128
+      },
+      "value": 0.8532654792196777,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 26,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.0028608321655097455,
+        "learning_rate": 0.001046785693430324,
+        "weight_decay": 9.243854176997906e-05,
+        "batch_size": 64
+      },
+      "value": 0.8388464800678541,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 27,
+      "params": {
+        "hidden_dim": 256,
+        "compressed_dim": 10,
+        "dropout": 0.07994370447170955,
+        "learning_rate": 0.00042739562919201843,
+        "weight_decay": 0.00031288827401446036,
+        "batch_size": 64
+      },
+      "value": 0.8439355385920272,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 28,
+      "params": {
+        "hidden_dim": 64,
+        "compressed_dim": 16,
+        "dropout": 0.04862055884209421,
+        "learning_rate": 0.004918304182406623,
+        "weight_decay": 0.0006326825576883872,
+        "batch_size": 32
+      },
+      "value": 0.8354537743850721,
+      "state": "COMPLETE"
+    },
+    {
+      "number": 29,
+      "params": {
+        "hidden_dim": 128,
+        "compressed_dim": 12,
+        "dropout": 0.24402523726769698,
+        "learning_rate": 0.0016266935152619696,
+        "weight_decay": 0.00031201480297685243,
+        "batch_size": 128
+      },
+      "value": 0.8473282442748091,
+      "state": "COMPLETE"
+    }
+  ]
+}
