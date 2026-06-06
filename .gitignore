@@ -1,0 +1,60 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.augment/
+
+# Logs
+*.log
+run_logs/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Node / Nuxt
+frontend/node_modules/
+frontend/.nuxt/
+frontend/.output/
+frontend/dist/
+frontend/.cache/
+frontend/.nitro/
+frontend/.eslintcache
+
+# Local databases and generated SQLite files
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+
+# Model weights and generated experiment artifacts
+*.pth
+*.pt
+*.onnx
+data_new/models/
+
+# Large local datasets can be restored separately if needed
+# Uncomment the next line if the datasets are too large for the repository.
+# data_new/kaggle/
+
