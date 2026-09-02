@@ -4,6 +4,11 @@
  */
 
 import { DeviceDB, FaultDB, AlertDB } from '~/server/data/database'
+import {
+  createAlertRecord,
+  getFaultLevel,
+  shouldCreateAlert,
+} from '~/server/utils/diagnosis-policy'
 
 // 简单的 CSV 解析函数（不依赖外部库）
 function parseCSV(content: string): any[] {
@@ -169,7 +174,7 @@ export default defineEventHandler(async (event) => {
           deviceName: device.deviceName,
           deviceCode: device.deviceCode,
           faultType,
-          faultLevel: 0,
+          faultLevel: getFaultLevel(confidence),
           confidence,
           diagnosisTime: now,
           status: 0,
@@ -179,40 +184,8 @@ export default defineEventHandler(async (event) => {
         })
 
         // 如果检测到故障（置信度 ≥ 30%），自动生成预警
-        if (faultType !== 0 && confidence >= 30) {
-          const alertTypes = [
-            '正常运行',
-            '单相接地预警',
-            '相间短路预警',
-            '三相短路预警',
-            '两相接地预警',
-            '三相接地短路预警'
-          ]
-
-          const level = confidence > 80 ? 3 : confidence >= 50 ? 2 : 1
-
-          const messageMap = [
-            '',
-            `${device.deviceName}检测到单相接地故障特征，A相电压异常，建议检查接地系统`,
-            `${device.deviceName}检测到相间短路故障特征，BC相电流异常，建议立即检查线路连接`,
-            `${device.deviceName}检测到三相短路故障特征，三相电流严重异常，建议立即断电检查`,
-            `${device.deviceName}检测到两相接地故障特征，AB相接地异常，建议立即处理`,
-            `${device.deviceName}检测到三相接地短路故障特征，系统严重异常，建议立即断电全面检查`
-          ]
-
-          AlertDB.insertOne({
-            deviceId: device.id,
-            deviceName: device.deviceName,
-            level,
-            type: alertTypes[faultType],
-            message: messageMap[faultType],
-            alertTime: now,
-            confidence,
-            status: 0,
-            handler: null,
-            handleTime: null,
-            remark: null
-          })
+        if (shouldCreateAlert(faultType, confidence)) {
+          AlertDB.insertOne(createAlertRecord(device, faultType, confidence, now))
         }
 
         diagnosedDevices.push({

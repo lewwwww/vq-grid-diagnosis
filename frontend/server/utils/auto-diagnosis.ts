@@ -6,6 +6,11 @@
 
 import { getStore } from '~/server/data/store'
 import { FaultDB, AlertDB, logInfo, logWarning, logError } from '~/server/data/database'
+import {
+  createAlertRecord,
+  getFaultLevel,
+  shouldCreateAlert,
+} from '~/server/utils/diagnosis-policy'
 
 let isInitialized = false
 let autoDiagnosisTimer: NodeJS.Timeout | null = null
@@ -82,7 +87,7 @@ export async function initAutoDiagnosis() {
             deviceName: device.deviceName,
             deviceCode: device.deviceCode,
             faultType: response.data.fault_type,
-            faultLevel: Math.round(response.data.confidence * 100) > 85 ? 3 : Math.round(response.data.confidence * 100) > 70 ? 2 : 1,
+            faultLevel: getFaultLevel(Math.round(response.data.confidence * 100)),
             confidence: Math.round(response.data.confidence * 100),
             nodeIds: response.data.encoding_indices,
             diagnosisTime: now,
@@ -204,28 +209,6 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-// 故障类型和预警相关
-const FAULT_TYPES = ['正常', '单相接地故障', '相间短路故障', '三相短路故障', '两相接地故障', '三相接地短路']
-const ALERT_TYPES = ['正常运行', '单相接地预警', '相间短路预警', '三相短路预警', '两相接地预警', '三相接地短路预警']
-
-function getAlertLevel(confidence: number): number {
-  if (confidence > 80) return 3
-  if (confidence >= 50) return 2
-  return 1
-}
-
-function generateAlertMessage(device: any, faultType: number, confidence: number): string {
-  const messages = [
-    '',
-    `${device.deviceName}检测到单相接地故障特征，A相电压异常，建议检查接地系统`,
-    `${device.deviceName}检测到相间短路故障特征，BC相电流异常，建议立即检查线路连接`,
-    `${device.deviceName}检测到三相短路故障特征，三相电流严重异常，建议立即断电检查`,
-    `${device.deviceName}检测到两相接地故障特征，AB相接地异常，建议立即处理`,
-    `${device.deviceName}检测到三相接地短路故障特征，系统严重异常，建议立即断电全面检查`
-  ]
-  return messages[faultType] || `${device.deviceName}检测到异常，置信度${confidence}%`
-}
-
 // 检查模型服务是否可用
 let modelServiceAvailable: boolean | null = null
 let lastCheckTime = 0
@@ -275,7 +258,8 @@ async function diagnoseDevice(device: any): Promise<boolean> {
     const modelResult = await callModelService(device.id, rawFeatures)
 
     // 只有检测到故障才记录
-    if (modelResult.fault_type !== 0 && modelResult.confidence >= 0.3) {
+    const confidence = Math.round(modelResult.confidence * 100)
+    if (shouldCreateAlert(modelResult.fault_type, confidence)) {
       const now = new Date().toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
@@ -286,8 +270,6 @@ async function diagnoseDevice(device: any): Promise<boolean> {
         hour12: false
       }).replace(/\//g, '-').replace(/,/g, '')
 
-      const confidence = Math.round(modelResult.confidence * 100)
-
       const faultType = modelResult.fault_type
 
       // 保存诊断记录
@@ -296,7 +278,7 @@ async function diagnoseDevice(device: any): Promise<boolean> {
         deviceName: device.deviceName,
         deviceCode: device.deviceCode,
         faultType,
-        faultLevel: confidence > 85 ? 3 : confidence > 70 ? 2 : 1,
+        faultLevel: getFaultLevel(confidence),
         confidence,
         diagnosisTime: now,
         status: 0,
@@ -306,20 +288,7 @@ async function diagnoseDevice(device: any): Promise<boolean> {
       })
 
       // 生成预警记录
-      const level = getAlertLevel(confidence)
-      const alertRecord = {
-        deviceId: device.id,
-        deviceName: device.deviceName,
-        level,
-        type: ALERT_TYPES[faultType],
-        message: generateAlertMessage(device, faultType, confidence),
-        alertTime: now,
-        confidence,
-        status: 0,
-        handler: null,
-        handleTime: null,
-        remark: null
-      }
+      const alertRecord = createAlertRecord(device, faultType, confidence, now)
 
       const alertId = AlertDB.insertOne(alertRecord)
 

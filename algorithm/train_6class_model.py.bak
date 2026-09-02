@@ -11,11 +11,11 @@
 
 import sys
 import os
-import copy
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
@@ -29,7 +29,94 @@ import json
 import time
 
 
-from vq_mlp_model import NodeIDsEncoder, VectorQuantizer, FaultClassifier
+class NodeIDsEncoder(nn.Module):
+    """ 编码器"""
+    def __init__(self, input_dim=6, hidden_dim=128, compressed_dim=10, dropout=0.1):
+        super().__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, compressed_dim)
+        )
+
+    def forward(self, x):
+        return self.encoder(x)
+
+
+class VectorQuantizer(nn.Module):
+    """
+    向量量化层
+    实现Codebook、最近邻搜索、Straight-Through Estimator
+    """
+    def __init__(self, num_embeddings=16, embedding_dim=10, commitment_cost=0.25):
+        super().__init__()
+        self.num_embeddings = num_embeddings  # K=16 (int4: 0-15)
+        self.embedding_dim = embedding_dim    # D=10
+        self.commitment_cost = commitment_cost  # β=0.25
+
+        # Codebook: 可学习的嵌入矩阵 E ∈ R^(K×D)
+        self.embedding = nn.Embedding(num_embeddings, embedding_dim)
+        self.embedding.weight.data.uniform_(-1/num_embeddings, 1/num_embeddings)
+
+    def forward(self, z):
+        """
+        前向传播
+        Args:
+            z: 编码器输出 [batch_size, embedding_dim]
+        Returns:
+            z_q: 量化后的向量 [batch_size, embedding_dim]
+            loss: VQ损失（承诺损失 + 码本损失）
+            perplexity: 码本利用率
+            encodings: 离散编码索引 [batch_size]
+        """
+        # 计算距离: ||z - e_k||^2
+        # z: [B, D], embedding.weight: [K, D]
+        distances = torch.cdist(z, self.embedding.weight)  # [B, K]
+
+        # 最近邻搜索: q = argmin_k ||z - e_k||^2
+        encoding_indices = torch.argmin(distances, dim=1)  # [B]
+
+        # 查表获取量化向量: z_q = e_q
+        z_q = self.embedding(encoding_indices)  # [B, D]
+
+        # 计算损失
+        # 承诺损失: ||sg[z_q] - z||^2 (鼓励编码器输出接近码本)
+        commitment_loss = F.mse_loss(z, z_q.detach())
+
+        # 码本损失: ||z_q - sg[z]||^2 (更新码本接近编码器输出)
+        codebook_loss = F.mse_loss(z_q, z.detach())
+
+        # 总VQ损失
+        vq_loss = codebook_loss + self.commitment_cost * commitment_loss
+
+        # Straight-Through Estimator: 前向用z_q，反向用z的梯度
+        z_q = z + (z_q - z).detach()
+
+        # 计算码本利用率（perplexity）
+        avg_probs = torch.bincount(encoding_indices, minlength=self.num_embeddings).float()
+        avg_probs = avg_probs / avg_probs.sum()
+        perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
+
+        return z_q, vq_loss, perplexity, encoding_indices
+
+
+class FaultClassifier(nn.Module):
+    """6 分类故障分类器"""
+    def __init__(self, input_dim=10, hidden_dim=64, num_classes=6, dropout=0.1):
+        super().__init__()
+        self.classifier = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, num_classes)
+        )
+    
+    def forward(self, x):
+        return self.classifier(x)
 
 
 def load_and_preprocess_data(data_path, test_size=0.15, val_size=0.15, random_state=42):
@@ -71,24 +158,23 @@ def load_and_preprocess_data(data_path, test_size=0.15, val_size=0.15, random_st
     X = df[['Ia', 'Ib', 'Ic', 'Va', 'Vb', 'Vc']].values
     y = df['fault_type'].values
     
-    # 先划分原始数据，避免验证集和测试集信息进入归一化参数。
+    # 数据归一化
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    print(f"\n归一化参数:")
+    print(f"  均值: {scaler.mean_}")
+    print(f"  标准差: {scaler.scale_}")
+    
+    # 划分数据集
     X_temp, X_test, y_temp, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state, stratify=y
+        X_scaled, y, test_size=test_size, random_state=random_state, stratify=y
     )
     
     val_size_adjusted = val_size / (1 - test_size)
     X_train, X_val, y_train, y_val = train_test_split(
         X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state, stratify=y_temp
     )
-
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_val = scaler.transform(X_val)
-    X_test = scaler.transform(X_test)
-
-    print(f"\n归一化参数（仅由训练集拟合）:")
-    print(f"  均值: {scaler.mean_}")
-    print(f"  标准差: {scaler.scale_}")
     
     print(f"\n数据集划分:")
     print(f"  训练集: {len(X_train)} ({len(X_train)/len(X)*100:.1f}%)")
@@ -177,7 +263,7 @@ def train_model(X_train, y_train, X_val, y_val, device,
     criterion = nn.CrossEntropyLoss()
 
     # 训练循环
-    best_val_acc = float('-inf')
+    best_val_acc = 0
     patience_counter = 0
 
     for epoch in range(num_epochs):
@@ -253,9 +339,9 @@ def train_model(X_train, y_train, X_val, y_val, device,
             best_val_acc = val_acc
             patience_counter = 0
             # 保存最佳模型
-            best_encoder_state = copy.deepcopy(encoder.state_dict())
-            best_vq_state = copy.deepcopy(vq_layer.state_dict())
-            best_classifier_state = copy.deepcopy(classifier.state_dict())
+            best_encoder_state = encoder.state_dict()
+            best_vq_state = vq_layer.state_dict()
+            best_classifier_state = classifier.state_dict()
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -274,24 +360,38 @@ def train_model(X_train, y_train, X_val, y_val, device,
     return encoder, vq_layer, classifier
 
 
-def evaluate_model(encoder, vq_layer, classifier, X, y, device, verbose=True):
-    """Evaluate a trained VQ-MLP model and return classification accuracy."""
+def evaluate_model(encoder, vq_layer, classifier, X_test, y_test, device, verbose=True):
+    """评估模型
+
+    Args:
+        encoder: 编码器
+        vq_layer: 向量量化层
+        classifier: 分类器
+        X_test: 测试集特征
+        y_test: 测试集标签
+        device: 设备
+        verbose: 是否打印详细信息
+
+    Returns:
+        accuracy: 测试准确率
+    """
     encoder.eval()
     vq_layer.eval()
     classifier.eval()
 
-    features = torch.as_tensor(X, dtype=torch.float32, device=device)
-    labels = torch.as_tensor(y, dtype=torch.long, device=device)
+    X_test_tensor = torch.FloatTensor(X_test).to(device)
+    y_test_tensor = torch.LongTensor(y_test).to(device)
 
     with torch.no_grad():
-        encoded = encoder(features)
-        quantized, _, _, _ = vq_layer(encoded)
-        predictions = classifier(quantized).argmax(dim=1)
-        accuracy = (predictions == labels).float().mean().item()
+        z = encoder(X_test_tensor)
+        z_q, _, _, _ = vq_layer(z)
+        logits = classifier(z_q)
+        _, predicted = torch.max(logits, 1)
+        accuracy = (predicted == y_test_tensor).sum().item() / len(y_test)
 
     if verbose:
         print(f"\n{'='*70}")
-        print("模型评估")
+        print("测试集评估")
         print(f"{'='*70}")
         print(f"  准确率: {accuracy:.4f}")
 

@@ -1,26 +1,14 @@
 import { AlertDB, FaultDB, logInfo, logWarning } from '~/server/data/database'
 import { getStore } from '~/server/data/store'
 import { loadAllDiagnosisSamples, loadDiagnosisSamples, loadDiagnosisSamplesByRange } from '~/server/utils/diagnosis-samples'
+import {
+  createAlertRecord,
+  getFaultLevel,
+  getFaultTypeName,
+  shouldCreateAlert,
+} from '~/server/utils/diagnosis-policy'
 
 const MODEL_SERVICE_URL = process.env.MODEL_SERVICE_URL || 'http://localhost:8000'
-
-const FAULT_TYPES = [
-  '正常',
-  '单相接地故障',
-  '相间短路故障',
-  '三相短路故障',
-  '两相接地故障',
-  '三相接地短路',
-]
-
-const ALERT_TYPES = [
-  '正常运行',
-  '单相接地预警',
-  '相间短路预警',
-  '三相短路预警',
-  '两相接地预警',
-  '三相接地短路预警',
-]
 
 interface BatchModelRequest {
   device_id: number
@@ -47,40 +35,6 @@ function getNowString() {
     second: '2-digit',
     hour12: false
   }).replace(/\//g, '-').replace(/,/g, '')
-}
-
-function getAlertLevel(confidence: number) {
-  if (confidence > 80) return 3
-  if (confidence >= 50) return 2
-  return 1
-}
-
-function generateAlertMessage(device: any, faultType: number, confidence: number) {
-  const messages = [
-    '',
-    `${device.deviceName}检测到单相接地故障特征，A相电压异常，建议检查接地系统`,
-    `${device.deviceName}检测到相间短路故障特征，BC相电流异常，建议立即检查线路连接`,
-    `${device.deviceName}检测到三相短路故障特征，三相电流严重异常，建议立即断电检查`,
-    `${device.deviceName}检测到两相接地故障特征，AB相接地异常，建议立即处理`,
-    `${device.deviceName}检测到三相接地短路故障特征，系统严重异常，建议立即断电全面检查`
-  ]
-  return messages[faultType] || `${device.deviceName}检测到异常，置信度${confidence}%`
-}
-
-function createAlertRecord(device: any, faultType: number, confidence: number) {
-  return {
-    deviceId: device.id,
-    deviceName: device.deviceName,
-    level: getAlertLevel(confidence),
-    type: ALERT_TYPES[faultType],
-    message: generateAlertMessage(device, faultType, confidence),
-    alertTime: getNowString(),
-    confidence,
-    status: 0,
-    handler: null,
-    handleTime: null,
-    remark: null
-  }
 }
 
 async function callBatchModelService(requests: BatchModelRequest[]) {
@@ -153,7 +107,7 @@ export default defineEventHandler(async (event) => {
       }
 
       const faultType = result.fault_type
-      const faultTypeName = result.fault_type_name || FAULT_TYPES[faultType] || '未知故障'
+      const faultTypeName = result.fault_type_name || getFaultTypeName(faultType)
       const confidence = Number.parseFloat((result.confidence * 100).toFixed(1))
       const diagnosisTime = getNowString()
 
@@ -162,7 +116,7 @@ export default defineEventHandler(async (event) => {
         deviceName: device.deviceName,
         deviceCode: device.deviceCode,
         faultType,
-        faultLevel: confidence > 85 ? 3 : confidence > 70 ? 2 : 1,
+        faultLevel: getFaultLevel(confidence),
         confidence,
         diagnosisTime,
         status: 0,
@@ -175,8 +129,8 @@ export default defineEventHandler(async (event) => {
       logInfo('故障诊断', `设备 ${device.deviceName} 批量诊断完成，数据集行号: ${sample.rowIndex}，故障类型: ${faultTypeName}，置信度: ${confidence}%`)
 
       let alertId: number | null = null
-      if (faultType !== 0 && confidence >= 30) {
-        const alertRecord = createAlertRecord(device, faultType, confidence)
+      if (shouldCreateAlert(faultType, confidence)) {
+        const alertRecord = createAlertRecord(device, faultType, confidence, diagnosisTime)
         alertId = AlertDB.insertOne(alertRecord)
         logWarning('预警管理', `设备 ${device.deviceName} 批量诊断检测到 ${faultTypeName}，已生成预警 #${alertId}`)
       }

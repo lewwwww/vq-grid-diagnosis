@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import torch
+import torch.nn as nn
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,65 @@ import uvicorn
 from datetime import datetime
 
 
-from vq_mlp_model import NodeIDsEncoder, VectorQuantizer, FaultClassifier
+# ==================== 模型定义 ====================
+
+class NodeIDsEncoder(nn.Module):
+    """ 编码器：将原始特征编码为连续表征"""
+
+    def __init__(self, input_dim=6, hidden_dim=256, compressed_dim=16, dropout=0.1):
+        super().__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, compressed_dim)
+        )
+
+    def forward(self, x):
+        return self.encoder(x)
+
+
+class VectorQuantizer(nn.Module):
+    """向量量化层"""
+    def __init__(self, num_embeddings=16, embedding_dim=16, commitment_cost=0.25):
+        super().__init__()
+        self.num_embeddings = num_embeddings
+        self.embedding_dim = embedding_dim
+        self.commitment_cost = commitment_cost
+        self.embedding = nn.Embedding(num_embeddings, embedding_dim)
+        self.embedding.weight.data.uniform_(-1/num_embeddings, 1/num_embeddings)
+
+    def forward(self, z):
+        distances = torch.cdist(z, self.embedding.weight)
+        encoding_indices = torch.argmin(distances, dim=1)
+        z_q = self.embedding(encoding_indices)
+        commitment_loss = torch.nn.functional.mse_loss(z, z_q.detach())
+        codebook_loss = torch.nn.functional.mse_loss(z_q, z.detach())
+        vq_loss = codebook_loss + self.commitment_cost * commitment_loss
+        z_q = z + (z_q - z).detach()
+        avg_probs = torch.bincount(encoding_indices, minlength=self.num_embeddings).float()
+        avg_probs = avg_probs / avg_probs.sum()
+        perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
+        return z_q, vq_loss, perplexity, encoding_indices
+
+
+class FaultClassifier(nn.Module):
+    """故障分类器：基于量化后的特征进行故障分类"""
+
+    def __init__(self, input_dim=16, hidden_dim=128, num_classes=6, dropout=0.1):
+        super().__init__()
+        self.classifier = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, num_classes)
+        )
+
+    def forward(self, x):
+        return self.classifier(x)
 
 
 # ==================== 数据模型 ====================
