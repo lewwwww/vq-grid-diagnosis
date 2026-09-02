@@ -1004,7 +1004,7 @@ const handleStopTraining = async (id: number) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await $fetch(`/api/v1/training/stop/${id}`, { method: 'POST' })
+    await $fetch(`/api/v1/training/jobs/${id}/stop`, { method: 'POST' })
     ElMessage.success('训练任务已停止')
     await loadTrainingJobs()
   } catch (error: any) {
