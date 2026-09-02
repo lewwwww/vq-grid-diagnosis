@@ -278,6 +278,27 @@
           <el-tag size="large" :type="diagnoseResult.faultType === 0 ? 'success' : 'danger'" style="font-size:14px;">
             VQ-MLP 预测结果：{{ diagnoseResult.faultTypeName }}
           </el-tag>
+
+          <!-- 故障处置建议（知识库增强问答） -->
+          <div v-loading="qaLoading" style="margin-top:20px;text-align:left;">
+            <template v-if="qaResult">
+              <div style="padding:14px 16px;background:#1A2535;border-radius:8px;border-left:4px solid #00D4FF;">
+                <div style="color:#00D4FF;font-weight:600;margin-bottom:6px;">【故障处置建议】{{ qaResult.fault_type_name }}</div>
+                <div style="color:#C0D0E0;font-size:13px;line-height:1.8;">{{ qaResult.explanation }}</div>
+              </div>
+              <div style="margin-top:12px;padding:14px 16px;background:#1A2535;border-radius:8px;">
+                <div style="color:#00D4FF;font-weight:600;margin-bottom:8px;">处置步骤</div>
+                <ol style="margin:0;padding-left:20px;color:#C0D0E0;font-size:13px;line-height:2;">
+                  <li v-for="(act, idx) in qaResult.actions" :key="idx">{{ act }}</li>
+                </ol>
+                <div v-if="qaResult.sources && qaResult.sources.length" style="margin-top:10px;font-size:12px;color:#7A8BA3;">
+                  资料来源：<span v-for="(s, idx) in qaResult.sources" :key="idx">{{ s }}{{ idx < qaResult.sources.length - 1 ? '；' : '' }}</span>
+                </div>
+                <el-tag v-if="qaResult.fallback" type="warning" size="small" effect="dark" style="margin-top:10px;">降级：未命中专用条目，展示通用处置建议</el-tag>
+              </div>
+            </template>
+            <el-empty v-else-if="!qaLoading" description="未获取到处置建议" :image-size="60" />
+          </div>
         </div>
       </div>
 
@@ -407,6 +428,9 @@ const diagnoseStep = ref(0)  // 0=选择设备+样本, 1=展示输入特征, 2=�
 const selectedDeviceId = ref(null)
 const diagnoseLoading = ref(false)
 const diagnoseResult = ref(null)
+// 知识库问答（故障处置建议）
+const qaResult = ref(null)
+const qaLoading = ref(false)
 const batchDiagnosing = ref(false)
 const batchDialogVisible = ref(false)
 const importing = ref(false)
@@ -564,6 +588,24 @@ const goToStep1 = () => {
   diagnoseStep.value = 1
 }
 
+// 获取故障处置建议（知识库增强问答）
+const loadKnowledge = async (faultType: number) => {
+  qaResult.value = null
+  qaLoading.value = true
+  try {
+    const res = await $fetch('/api/v1/qa', {
+      method: 'POST',
+      body: { faultType }
+    })
+    qaResult.value = res.data
+  } catch (e: any) {
+    console.error('加载处置建议失败:', e)
+    qaResult.value = null
+  } finally {
+    qaLoading.value = false
+  }
+}
+
 // 提交诊断
 const submitDiagnose = async () => {
   if (!selectedDeviceId.value || !selectedSample.value) {
@@ -591,6 +633,8 @@ const submitDiagnose = async () => {
       }
     })
     diagnoseResult.value = res.data
+    // 拉取该故障类型的处置建议（知识库增强问答）
+    loadKnowledge(res.data.faultType)
     ElMessage.success(`诊断完成：${res.data.faultTypeName}，置信度${res.data.confidence}%`)
     loadData()
   } catch (e: any) {
@@ -609,6 +653,7 @@ const closeDiagnoseDialog = () => {
   selectedSampleIdx.value = null
   selectedSample.value = null
   diagnoseResult.value = null
+  qaResult.value = null
 }
 
 // 加载数据

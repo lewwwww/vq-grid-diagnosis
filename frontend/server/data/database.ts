@@ -5,6 +5,7 @@ import Database from 'better-sqlite3'
 import { resolve } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import type { User, Device, FaultRecord, AlertRecord, NotificationRecord } from './store'
+import { SEED_DATA } from './knowledge-data'
 
 export interface SystemLog {
   id: number
@@ -21,6 +22,17 @@ export interface AppSettingRecord {
   updateTime: string
 }
 
+export interface KnowledgeRecord {
+  id: number
+  faultType: number
+  title: string
+  explanation: string
+  actions: string[]
+  keywords: string | null
+  source: string | null
+  createTime: string
+}
+
 let db: Database.Database | null = null
 
 // 获取数据库实例
@@ -35,6 +47,7 @@ export function getDatabase() {
     db.pragma('journal_mode = WAL') // 提高并发性能
   }
   initTables()
+  initKnowledgeSeed()
   return db
 }
 
@@ -168,6 +181,21 @@ function initTables() {
     )
   `)
 
+  // 故障处置知识库表（智能问答模块）
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS knowledge_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      faultType INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      explanation TEXT NOT NULL,
+      actions TEXT NOT NULL,
+      keywords TEXT,
+      source TEXT,
+      createTime TEXT
+    )
+  `)
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_knowledge_faultType ON knowledge_records(faultType)`)
+
   // 创建索引
   db.exec(`CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON system_logs(timestamp DESC)`)
   db.exec(`CREATE INDEX IF NOT EXISTS idx_logs_level ON system_logs(level)`)
@@ -179,6 +207,32 @@ function ensureColumn(tableName: string, columnName: string, columnDef: string) 
   if (!columns.some(column => column.name === columnName)) {
     db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDef}`)
   }
+}
+
+// 初始化知识库种子数据（幂等：表里已有数据则跳过，避免重复插入）
+function initKnowledgeSeed() {
+  if (!db) return
+  const count = db.prepare('SELECT COUNT(*) as cnt FROM knowledge_records').get() as { cnt: number }
+  if (count.cnt > 0) return
+  const createTime = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  const stmt = db.prepare(`
+    INSERT INTO knowledge_records (faultType, title, explanation, actions, keywords, source, createTime)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `)
+  const insertAll = db.transaction((items: typeof SEED_DATA) => {
+    for (const item of items) {
+      stmt.run(
+        item.faultType,
+        item.title,
+        item.explanation,
+        JSON.stringify(item.actions),
+        item.keywords,
+        item.source,
+        createTime
+      )
+    }
+  })
+  insertAll(SEED_DATA)
 }
 
 // ========== 用户操作 ==========
@@ -750,5 +804,40 @@ export function closeDatabase() {
   if (db) {
     db.close()
     db = null
+  }
+}
+
+// ========== 故障处置知识库操作（智能问答模块） ==========
+export const KnowledgeDB = {
+  count(): number {
+    const db = getDatabase()
+    const row = db.prepare('SELECT COUNT(*) as cnt FROM knowledge_records').get() as { cnt: number }
+    return row.cnt
+  },
+
+  getAll(): KnowledgeRecord[] {
+    const db = getDatabase()
+    const rows = db.prepare('SELECT * FROM knowledge_records ORDER BY faultType ASC').all() as any[]
+    return rows.map(r => ({ ...r, actions: JSON.parse(r.actions || '[]') }))
+  },
+
+  // 按故障类型精确检索（智能问答主路径）
+  findByFaultType(faultType: number): KnowledgeRecord | undefined {
+    const db = getDatabase()
+    const row = db.prepare('SELECT * FROM knowledge_records WHERE faultType = ? ORDER BY id LIMIT 1').get(faultType) as any
+    if (!row) return undefined
+    return { ...row, actions: JSON.parse(row.actions || '[]') }
+  },
+
+  // 关键词检索（标题 / 解释 / 关键词模糊匹配）
+  searchByKeyword(keyword: string): KnowledgeRecord[] {
+    const db = getDatabase()
+    const kw = `%${keyword.trim()}%`
+    const rows = db.prepare(`
+      SELECT * FROM knowledge_records
+      WHERE title LIKE ? OR explanation LIKE ? OR keywords LIKE ?
+      ORDER BY faultType ASC
+    `).all(kw, kw, kw) as any[]
+    return rows.map(r => ({ ...r, actions: JSON.parse(r.actions || '[]') }))
   }
 }
