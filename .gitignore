@@ -55,3 +55,6 @@ frontend/.eslintcache
 # Large local datasets can be restored separately if needed
 # Uncomment the next line if the datasets are too large for the repository.
 # data_new/kaggle/
+
+# Internal study notes, not for remote
+README2.md
