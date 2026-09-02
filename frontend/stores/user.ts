@@ -29,8 +29,7 @@ export interface RegisterForm {
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: '',
-    userInfo: null as UserInfo | null,
-    permissions: [] as string[]
+    userInfo: null as UserInfo | null
   }),
 
   getters: {
@@ -54,9 +53,6 @@ export const useUserStore = defineStore('user', {
         // 保存到localStorage
         localStorage.setItem('token', this.token)
         localStorage.setItem('userInfo', JSON.stringify(this.userInfo))
-
-        // 获取权限 - 暂时注释掉,后端未实现权限接口,使用角色控制即可
-        // await this.getPermissions()
 
         return res
       } catch (error) {
@@ -85,8 +81,7 @@ export const useUserStore = defineStore('user', {
       } finally {
         this.token = ''
         this.userInfo = null
-        this.permissions = []
-        
+
         localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
         
@@ -110,23 +105,6 @@ export const useUserStore = defineStore('user', {
         console.error('获取用户信息失败:', error)
         throw error
       }
-    },
-
-    // 获取权限列表
-    async getPermissions() {
-      try {
-        const res = await $fetch('/api/auth/permissions')
-        this.permissions = (res as any).data
-        return res
-      } catch (error) {
-        console.error('获取权限列表失败:', error)
-        throw error
-      }
-    },
-
-    // 检查权限
-    hasPermission(permission: string): boolean {
-      return this.permissions.includes(permission)
     },
 
     // 从localStorage恢复状态
