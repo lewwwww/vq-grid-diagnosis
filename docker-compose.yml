@@ -1,0 +1,44 @@
+# ============================================================
+# 智能电网故障诊断系统 - Docker Compose 一键部署
+# 用法：docker compose up -d --build
+#   - 前端/业务接口：http://localhost:3000
+#   - 算法推理服务：  http://localhost:8000（API 文档 /docs）
+# ============================================================
+
+services:
+  # ---- 算法推理服务（FastAPI + PyTorch）----
+  algorithm:
+    build:
+      context: .
+      dockerfile: algorithm/Dockerfile
+    image: smart-grid-algorithm:latest
+    container_name: smart-grid-algorithm
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---- 前端业务服务（Nuxt3 + Nitro Server）----
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: smart-grid-frontend:latest
+    container_name: smart-grid-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # 容器内通过 compose 服务名访问算法服务（不要用 localhost）
+      - MODEL_SERVICE_URL=http://algorithm:8000
+    volumes:
+      # SQLite 数据持久化到宿主机 frontend/data
+      - ./frontend/data:/app/data
+    depends_on:
+      algorithm:
+        condition: service_healthy
+    restart: unless-stopped

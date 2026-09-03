@@ -43,6 +43,7 @@ frontend/.nitro/
 frontend/.eslintcache
 
 # Local databases and generated SQLite files
+*.db
 *.db-wal
 *.db-shm
 *.sqlite-wal

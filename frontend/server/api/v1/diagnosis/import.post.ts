@@ -10,6 +10,9 @@ import {
   shouldCreateAlert,
 } from '~/server/utils/diagnosis-policy'
 
+// 模型服务地址：优先读环境变量，本地开发默认 8000 端口
+const MODEL_SERVICE_URL = process.env.MODEL_SERVICE_URL || 'http://localhost:8000'
+
 // 简单的 CSV 解析函数（不依赖外部库）
 function parseCSV(content: string): any[] {
   const lines = content.trim().split('\n')
@@ -144,7 +147,7 @@ export default defineEventHandler(async (event) => {
         }
 
         // 调用算法服务进行诊断
-        const response = await $fetch('http://localhost:8000/api/diagnose', {
+        const response = await $fetch(`${MODEL_SERVICE_URL}/api/diagnose`, {
           method: 'POST',
           body: {
             device_id: device.id,

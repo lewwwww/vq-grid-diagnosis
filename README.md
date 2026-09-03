@@ -169,3 +169,39 @@ python algorithm/run_all_experiments.py --exp all
 3. 在前端页面录入或导入设备数据。
 4. 前端调用诊断接口，获取故障类型、置信度和量化编码结果。
 5. 在告警、诊断、分析等页面查看结果。
+
+## Docker 一键部署
+
+项目提供 `docker-compose.yml`，可一键启动前端业务服务与算法推理服务（无需本地安装 Node/Python 环境）。
+
+**前置要求**：安装 Docker Desktop 并启动（国内网络环境建议先配置可用的镜像加速器）。
+
+```bash
+# 在项目根目录执行，首次构建并后台启动
+docker compose up -d --build
+
+# 查看状态
+docker compose ps
+
+# 查看日志
+docker compose logs -f
+
+# 停止
+docker compose down
+
+# 停止并删除数据卷（清空 SQLite 数据，下次启动重新生成种子数据）
+docker compose down -v
+```
+
+**服务地址**：
+
+- 前端/业务接口：<http://localhost:3000>
+- 算法推理服务：<http://localhost:8000>（接口文档 <http://localhost:8000/docs>）
+
+**说明**：
+
+- 前端容器内通过环境变量 `MODEL_SERVICE_URL=http://algorithm:8000` 访问算法服务，已消除代码中硬编码的 `localhost:8000`。
+- SQLite 数据通过 volume 挂载到宿主机 `frontend/data`，数据持久化；删除 volume 后首次启动会根据种子数据自动生成设备、用户与知识库。
+- 首次启动时若数据库为空，系统会自动对前 10 个设备执行一次真实模型诊断并生成预警（复用统一的诊断实现）。
+- 算法镜像安装 CPU 版 PyTorch，模型权重（`data_new/models/fault_6class`）已打包进镜像，无需额外拷贝。
+

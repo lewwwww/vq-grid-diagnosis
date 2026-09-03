@@ -1,0 +1,50 @@
+# 构建上下文排除（减小 context 传输，避免误拷贝）
+
+# VCS / IDE
+.git
+.gitignore
+.idea
+.vscode
+
+# 日志与运行产物
+*.log
+run_logs
+demo截图
+demo录制脚本.md
+QQ*.mp4
+
+# 环境变量（避免泄露邮箱授权码等）
+.env
+.env.*
+
+# Python
+__pycache__
+*.pyc
+.venv
+venv
+*.egg-info
+
+# Node
+node_modules
+frontend/node_modules
+frontend/.nuxt
+frontend/.output
+frontend/dist
+frontend/.cache
+frontend/.nitro
+frontend/.eslintcache
+
+# 本地数据库（首次启动由种子数据生成，运行时 volume 持久化）
+*.db
+*.db-wal
+*.db-shm
+frontend/data
+
+# 大型数据集（镜像只保留模型权重，不需要原始数据集）
+data_new/kaggle
+
+# 个人临时文件
+_backup_resume
+_*.py
+_*.docx
+_*.png

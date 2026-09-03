@@ -169,6 +169,62 @@ class ModelInferenceEngine:
             'inference_time_ms': round(inference_time, 2)
         }
 
+    def diagnose_batch(self, features_list: List[List[float]]) -> List[dict]:
+        """
+        批量诊断（向量化批推理）
+
+        把所有样本拼成一个 [N, 6] 张量，只做一次前向完成 N 个样本的推理，
+        相比 for 循环逐个调 diagnose()：
+          - 权重矩阵只加载一次、被 N 个样本复用
+          - 算子启动 / 内存搬运等固定开销只付一次
+          - 底层矩阵库（GEMM）对 [N, 6] 的并行优化远好于 N 个 [1, 6]
+
+        Args:
+            features_list: N 个样本的六维特征，[[Ia,Ib,Ic,Va,Vb,Vc], ...]
+
+        Returns:
+            N 个诊断结果字典（字段与 diagnose 完全一致）
+        """
+        import time
+        start_time = time.time()
+
+        # 1. 数据预处理：所有样本拼成一个 [N, 6] 的 ndarray，整体向量化归一化
+        #    注意 normalize 里 mean/std 是 float64，必须显式转回 float32 与模型权重匹配
+        features_array = np.asarray(features_list, dtype=np.float32)     # [N, 6]
+        features_normalized = self.normalize(features_array).astype(np.float32)  # [N, 6]
+        x = torch.from_numpy(features_normalized).to(self.device)        # [N, 6]
+
+        # 2. 模型推理：一次前向跑完 N 个样本（batch=N）
+        with torch.no_grad():
+            z = self.encoder(x)                                          # [N, 16]
+            z_q, _, _, encoding_indices = self.vq_layer(z)               # [N, 16], [N]
+            logits = self.classifier(z_q)                                # [N, 6]
+            probs = torch.softmax(logits, dim=1)                         # [N, 6]
+            fault_types = torch.argmax(probs, dim=1)                     # [N]
+            # 逐样本取预测类别对应的置信度（等价于单条的 probs[0][fault_type]）
+            confidences = probs[torch.arange(probs.size(0)), fault_types]
+
+        inference_time = (time.time() - start_time) * 1000  # 整批总耗时(ms)
+
+        # 3. 把 [N, ...] 张量拆成 N 条结果（与 diagnose 返回格式一致）
+        quantized_np = z_q.cpu().numpy()
+        prob_np = probs.cpu().numpy()
+        idx_np = encoding_indices.cpu().numpy()
+        ft_np = fault_types.cpu().numpy()
+        conf_np = confidences.cpu().numpy()
+
+        return [
+            {
+                'fault_type': int(ft_np[i]),
+                'confidence': float(conf_np[i]),
+                'encoding_indices': [int(idx_np[i])],
+                'quantized_vector': [round(float(v), 6) for v in quantized_np[i]],
+                'probabilities': [float(p) for p in prob_np[i]],
+                'inference_time_ms': round(inference_time, 2)
+            }
+            for i in range(x.size(0))
+        ]
+
 
 # ==================== FastAPI 应用 ====================
 
@@ -203,7 +259,7 @@ async def startup_event():
         raise
 
 
-@app.get("/")
+@app.get("/", tags=["系统"], summary="服务根信息")
 async def root():
     """健康检查"""
     return {
@@ -215,7 +271,7 @@ async def root():
     }
 
 
-@app.get("/health")
+@app.get("/health", tags=["系统"], summary="健康检查")
 async def health_check():
     """健康检查"""
     if engine is None:
@@ -223,7 +279,7 @@ async def health_check():
     return {"status": "healthy", "device": str(engine.device)}
 
 
-@app.post("/reload")
+@app.post("/reload", tags=["系统"], summary="热重载模型")
 async def reload_model():
     """重新加载模型（用于训练完成后更新模型）"""
     global engine
@@ -242,7 +298,7 @@ async def reload_model():
         raise HTTPException(status_code=500, detail=f"模型重新加载失败: {str(e)}")
 
 
-@app.post("/api/diagnose", response_model=DiagnosisResponse)
+@app.post("/api/diagnose", response_model=DiagnosisResponse, tags=["诊断"], summary="单条故障诊断")
 async def diagnose(request: DiagnosisRequest):
     """
     故障诊断接口
@@ -306,41 +362,56 @@ async def diagnose(request: DiagnosisRequest):
         raise HTTPException(status_code=500, detail=f"诊断失败: {str(e)}")
 
 
-@app.post("/api/batch_diagnose")
+@app.post("/api/batch_diagnose", tags=["诊断"], summary="批量故障诊断（向量化批推理）")
 async def batch_diagnose(requests: List[DiagnosisRequest]):
     """批量诊断接口"""
     if engine is None:
         raise HTTPException(status_code=503, detail="模型未加载")
 
-    results = []
-    for req in requests:
-        try:
-            result = engine.diagnose(req.features)
-            fault_type_names = {
-                0: "正常",
-                1: "单相接地故障",
-                2: "相间短路故障",
-                3: "三相短路故障",
-                4: "两相接地故障",
-                5: "三相接地短路"
-            }
-            results.append({
-                "device_id": req.device_id,
-                "fault_type": result['fault_type'],
-                "fault_type_name": fault_type_names.get(result['fault_type'], "未知故障"),
-                "confidence": round(result['confidence'], 4),
-                "encoding_indices": result['encoding_indices'],
-                "quantized_vector": result['quantized_vector'],
-                "probabilities": [round(x, 4) for x in result['probabilities']],
-                "inference_time_ms": result['inference_time_ms']
-            })
-        except Exception as e:
-            results.append({
-                "device_id": req.device_id,
-                "error": str(e)
-            })
+    fault_type_names = {
+        0: "正常",
+        1: "单相接地故障",
+        2: "相间短路故障",
+        3: "三相短路故障",
+        4: "两相接地故障",
+        5: "三相接地短路"
+    }
 
-    return {"results": results, "total": len(results)}
+    # 先做维度校验：非法样本单独标记 error，不拖垮整批（保持"单条失败不影响整批"语义）
+    valid_reqs = []
+    invalid_results = []
+    for req in requests:
+        if len(req.features) != 6:
+            invalid_results.append({
+                "device_id": req.device_id,
+                "error": f"特征维度错误：期望 6 维，实际 {len(req.features)} 维"
+            })
+        else:
+            valid_reqs.append(req)
+
+    try:
+        # 向量化批推理：合法样本拼成一个 [N,6] 张量，一次前向完成
+        batch_results = engine.diagnose_batch([req.features for req in valid_reqs])
+        results = invalid_results + [
+            {
+                "device_id": req.device_id,
+                "fault_type": r['fault_type'],
+                "fault_type_name": fault_type_names.get(r['fault_type'], "未知故障"),
+                "confidence": round(r['confidence'], 4),
+                "encoding_indices": r['encoding_indices'],
+                "quantized_vector": r['quantized_vector'],
+                "probabilities": [round(p, 4) for p in r['probabilities']],
+                "inference_time_ms": r['inference_time_ms']
+            }
+            for req, r in zip(valid_reqs, batch_results)
+        ]
+        return {"results": results, "total": len(results)}
+    except Exception as e:
+        # 整批前向失败：全部按 error 返回（不抛出，与旧行为一致）
+        return {
+            "results": [{"device_id": req.device_id, "error": str(e)} for req in requests],
+            "total": len(requests)
+        }
 
 
 # ==================== 主函数 ====================
@@ -361,3 +432,4 @@ if __name__ == "__main__":
         port=8000,
         log_level="info"
     )
+

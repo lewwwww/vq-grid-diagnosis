@@ -52,56 +52,16 @@ export async function initAutoDiagnosis() {
     const devicesToDiagnose = devices.slice(0, Math.min(10, devices.length))
     
     let successCount = 0
-    
+
     for (const device of devicesToDiagnose) {
       try {
-        // 调用诊断 API
-        const response = await $fetch('http://localhost:8000/api/diagnose', {
-          method: 'POST',
-          body: {
-            device_id: device.id,
-            device_name: device.deviceName,
-            voltage_level: parseFloat(device.voltageLevel.replace('kV', '')),
-            current: device.current || 100,
-            voltage: device.voltage || 220,
-            power: device.power || 1000,
-            temperature: device.temperature || 45,
-            load_rate: device.loadRate || 0.75
-          }
-        })
-        
-        if (response.code === 200) {
-          // 保存诊断记录
-          const now = new Date().toLocaleString('zh-CN', { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit', 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit',
-            hour12: false 
-          }).replace(/\//g, '-').replace(/,/g, '')
-          
-          FaultDB.insertOne({
-            deviceId: device.id,
-            deviceName: device.deviceName,
-            deviceCode: device.deviceCode,
-            faultType: response.data.fault_type,
-            faultLevel: getFaultLevel(Math.round(response.data.confidence * 100)),
-            confidence: Math.round(response.data.confidence * 100),
-            nodeIds: response.data.encoding_indices,
-            diagnosisTime: now,
-            status: 0,
-            description: response.data.description || '自动诊断生成',
-            affectedDevices: [device.deviceCode]
-          })
-          
-          successCount++
-        }
+        // 复用统一的诊断实现（正确生成六维特征、调用模型服务、保存诊断与预警）
+        const success = await diagnoseDevice(device)
+        if (success) successCount++
       } catch (error) {
         console.error(`[自动诊断] 设备 ${device.deviceName} 诊断失败:`, error)
       }
-      
+
       // 间隔 200ms
       await new Promise(resolve => setTimeout(resolve, 200))
     }
